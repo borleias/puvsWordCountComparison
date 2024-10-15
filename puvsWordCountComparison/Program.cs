@@ -7,16 +7,16 @@ using System.Linq;
 using System.Diagnostics;
 using System.Threading;
 
-class Program
+public class Program
 {
     // Pfad zur Textdatei
-    static string filePath = "/Users/bernhdt/KingJamesBible20.txt";
-    private static int factor = 3;
+    private const string FILE_PATH = "/Users/bernhdt/KingJamesBible20.txt";
+    private const int FACTOR = 3;
 
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
         // Anzahl der Wiederholungen
-        int iterations = 10;
+        const int iterations = 10;
 
         // Sequentielle Verarbeitung
         Console.WriteLine("Sequentielle Verarbeitung:");
@@ -37,7 +37,7 @@ class Program
     }
 
     // Methode zur sequentiellen Ausführung
-    static long RunSequential(int iterations)
+    private static long RunSequential(int iterations)
     {
         long totalElapsedTime = 0;
 
@@ -52,7 +52,7 @@ class Program
     }
 
     // Methode zur parallelen Ausführung mit Threads
-    static long RunParallelCommonData(int iterations)
+    private static long RunParallelCommonData(int iterations)
     {
         long totalElapsedTime = 0;
         for (int i = 1; i <= iterations; i++)
@@ -65,7 +65,7 @@ class Program
         return totalElapsedTime;
     }
     
-    static long RunParallelSeparateData(int iterations)
+    private static long RunParallelSeparateData(int iterations)
     {
         long totalElapsedTime = 0;
         for (int i = 1; i <= iterations; i++)
@@ -79,7 +79,7 @@ class Program
     }
 
     // Methode zur Verarbeitung der Datei und Zeitmessung (sequentiell oder parallel)
-    static long ProcessFileAndMeasureTime(int iteration, Method method)
+    private static long ProcessFileAndMeasureTime(int iteration, Method method)
     {
         string methodInfo;
         Stopwatch stopwatch = new Stopwatch();
@@ -88,15 +88,18 @@ class Program
         switch (method)
         {
             case Method.Sequential:
-                ProcessFileSequential(iteration); // Sequentielle Auswertung
+                // Sequentielle Auswertung
+                ProcessFileSequential(iteration); 
                 methodInfo = "(sequentiell)";
                 break;
             case Method.ParallelCommonData:
-                ProcessFileParallelWithThreadsAndCommonData(iteration); // Parallele Auswertung mit Threads
+                // Parallele Auswertung mit Threads und geteilten Daten
+                ProcessFileParallelWithThreadsAndCommonData(iteration); 
                 methodInfo = "(parallel, common data)";
                 break;
             case Method.ParallelSeparatedDate:
-                ProcessFileParallelWithThreadsAndSeparateData(iteration); // Parallele Auswertung mit Threads
+                // Parallele Auswertung mit Threads und separate Daten
+                ProcessFileParallelWithThreadsAndSeparateData(iteration); 
                 methodInfo = "(parallel, separate data)";
                 break;
             default:
@@ -109,13 +112,13 @@ class Program
     }
 
     // Methode zur parallelen Verarbeitung der Datei mit isolierten Datenstrukturen in Threads
-    static void ProcessFileParallelWithThreadsAndSeparateData(int iteration)
+    private static void ProcessFileParallelWithThreadsAndSeparateData(int iteration)
     {
         // Textdatei einlesen
-        string text = ReadFile(filePath, factor); // File.ReadAllText(filePath);
+        string text = ReadFile(FILE_PATH, FACTOR); // File.ReadAllText(filePath);
 
         // Wörter extrahieren, in Kleinbuchstaben umwandeln und nach Leerzeichen trennen
-        var words = text
+        string[] words = text
             .ToLower()
             .Split(new char[] { ' ', '\r', '\n', '\t', ',', '.', ';', ':', '-', '_', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -147,13 +150,9 @@ class Program
                 for (int i = start; i < end; i++)
                 {
                     string word = words[i];
-                    if (localWordFrequency.ContainsKey(word))
+                    if (!localWordFrequency.TryAdd(word, 1))
                     {
                         localWordFrequency[word]++;
-                    }
-                    else
-                    {
-                        localWordFrequency[word] = 1;
                     }
                 }
             });
@@ -189,7 +188,7 @@ class Program
         Console.WriteLine($"Zeit zum Zusammenführen: {totalElapsedTime} ms");
 
         // Sortierung nach Häufigkeit und Auswahl der 10 häufigsten Wörter
-        var topWords = finalWordFrequency
+        IEnumerable<KeyValuePair<string, int>> topWords = finalWordFrequency
             .OrderByDescending(w => w.Value)
             .Take(10);
 
@@ -202,11 +201,11 @@ class Program
         }
     }
     
-        // Methode zur parallelen Verarbeitung der Datei mit Threads
-    static void ProcessFileParallelWithThreadsAndCommonData(int iteration)
+    // Methode zur parallelen Verarbeitung der Datei mit Threads
+    private static void ProcessFileParallelWithThreadsAndCommonData(int iteration)
     {
         // Textdatei einlesen
-        string text = ReadFile(filePath, factor); // File.ReadAllText(filePath);
+        string text = ReadFile(FILE_PATH, FACTOR); // File.ReadAllText(filePath);
 
         // Wörter extrahieren, in Kleinbuchstaben umwandeln und nach Leerzeichen trennen
         var words = text
@@ -235,13 +234,9 @@ class Program
                 for (int i = start; i < end; i++)
                 {
                     string word = words[i];
-                    if (localWordFrequency.ContainsKey(word))
+                    if (!localWordFrequency.TryAdd(word, 1))
                     {
                         localWordFrequency[word]++;
-                    }
-                    else
-                    {
-                        localWordFrequency[word] = 1;
                     }
                 }
 
@@ -286,10 +281,10 @@ class Program
     }
 
     // Methode zur sequentiellen Verarbeitung der Datei
-    static void ProcessFileSequential(int iteration)
+    private static void ProcessFileSequential(int iteration)
     {
         // Textdatei einlesen
-        string text = ReadFile(filePath, factor); // File.ReadAllText(filePath);
+        string text = ReadFile(FILE_PATH, FACTOR); // File.ReadAllText(filePath);
 
         // Wörter extrahieren, in Kleinbuchstaben umwandeln und nach Leerzeichen trennen
         var words = text
@@ -301,13 +296,9 @@ class Program
 
         foreach (var word in words)
         {
-            if (wordFrequency.ContainsKey(word))
+            if (!wordFrequency.TryAdd(word, 1))
             {
                 wordFrequency[word]++;
-            }
-            else
-            {
-                wordFrequency[word] = 1;
             }
         }
 
@@ -325,14 +316,13 @@ class Program
         }
     }
 
-    static string ReadFile(string filePath, int factor = 1)
+    private static string ReadFile(string filePath, int factor = 1)
     {
         string text = File.ReadAllText(filePath);
 
         for (int i = 1; i < factor; i++)
         {
-            text += " ";
-            text += text;
+            text += $" {text}";
         }
 
         return text;
